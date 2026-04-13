@@ -81,7 +81,7 @@ func defaultConfig() *scheduler.Config {
 func newTestLibrary(logger log.Logger, specProcessor scheduler.SpecProcessor) *scheduler.Library {
 	config := defaultConfig()
 	specBuilder := legacyscheduler.NewSpecBuilder()
-	invokerOpts := scheduler.InvokerTaskExecutorOptions{
+	invokerOpts := scheduler.InvokerTaskHandlerOptions{
 		Config:         config,
 		MetricsHandler: metrics.NoopMetricsHandler,
 		BaseLogger:     logger,
@@ -89,23 +89,31 @@ func newTestLibrary(logger log.Logger, specProcessor scheduler.SpecProcessor) *s
 	}
 	return scheduler.NewLibrary(
 		nil,
-		scheduler.NewSchedulerIdleTaskExecutor(scheduler.SchedulerIdleTaskExecutorOptions{
+		scheduler.NewSchedulerIdleTaskHandler(scheduler.SchedulerIdleTaskHandlerOptions{
 			Config: config,
 		}),
-		scheduler.NewGeneratorTaskExecutor(scheduler.GeneratorTaskExecutorOptions{
+		scheduler.NewSchedulerCallbacksTaskHandler(scheduler.SchedulerCallbacksTaskHandlerOptions{
+			Config: config,
+		}),
+		scheduler.NewGeneratorTaskHandler(scheduler.GeneratorTaskHandlerOptions{
 			Config:         config,
 			MetricsHandler: metrics.NoopMetricsHandler,
 			BaseLogger:     logger,
 			SpecProcessor:  specProcessor,
 			SpecBuilder:    specBuilder,
 		}),
-		scheduler.NewInvokerExecuteTaskExecutor(invokerOpts),
-		scheduler.NewInvokerProcessBufferTaskExecutor(invokerOpts),
-		scheduler.NewBackfillerTaskExecutor(scheduler.BackfillerTaskExecutorOptions{
+		scheduler.NewInvokerExecuteTaskHandler(invokerOpts),
+		scheduler.NewInvokerProcessBufferTaskHandler(invokerOpts),
+		scheduler.NewBackfillerTaskHandler(scheduler.BackfillerTaskHandlerOptions{
 			Config:         config,
 			MetricsHandler: metrics.NoopMetricsHandler,
 			BaseLogger:     logger,
 			SpecProcessor:  specProcessor,
+		}),
+		scheduler.NewSchedulerMigrateToWorkflowTaskHandler(scheduler.SchedulerMigrateToWorkflowTaskHandlerOptions{
+			Config:         config,
+			MetricsHandler: metrics.NoopMetricsHandler,
+			BaseLogger:     logger,
 		}),
 	)
 }
@@ -114,6 +122,7 @@ func newTestLibrary(logger log.Logger, specProcessor scheduler.SpecProcessor) *s
 type testEnv struct {
 	t             *testing.T // only used within these setup helpers
 	Ctrl          *gomock.Controller
+	Registry      *chasm.Registry
 	Node          *chasm.Node
 	NodeBackend   *chasm.MockNodeBackend
 	TimeSource    *clock.EventTimeSource
@@ -208,7 +217,7 @@ func newTestEnv(t *testing.T, opts ...testEnvOption) *testEnv {
 		},
 	}
 
-	node := chasm.NewEmptyTree(registry, timeSource, nodeBackend, nodePathEncoder, logger)
+	node := chasm.NewEmptyTree(registry, timeSource, nodeBackend, nodePathEncoder, logger, metrics.NoopMetricsHandler)
 	ctx := chasm.NewMutableContext(context.Background(), node)
 	sched, err := scheduler.NewScheduler(ctx, namespace, namespaceID, scheduleID, defaultSchedule(), nil)
 	if err != nil {
@@ -230,6 +239,7 @@ func newTestEnv(t *testing.T, opts ...testEnvOption) *testEnv {
 	env := &testEnv{
 		t:             t,
 		Ctrl:          ctrl,
+		Registry:      registry,
 		Node:          node,
 		NodeBackend:   nodeBackend,
 		TimeSource:    timeSource,
@@ -343,7 +353,7 @@ func setupTestInfra(t *testing.T, specProcessor scheduler.SpecProcessor) *testIn
 		}
 	}
 
-	node := chasm.NewEmptyTree(registry, timeSource, nodeBackend, nodePathEncoder, logger)
+	node := chasm.NewEmptyTree(registry, timeSource, nodeBackend, nodePathEncoder, logger, metrics.NoopMetricsHandler)
 	return &testInfra{
 		node:        node,
 		nodeBackend: nodeBackend,
