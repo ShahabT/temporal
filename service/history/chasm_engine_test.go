@@ -642,7 +642,7 @@ func (s *chasmEngineSuite) currentRunConditionFailedErr(
 		RunID:            tv.RunID(),
 		State:            state,
 		Status:           status,
-		LastWriteVersion: s.namespaceEntry.FailoverVersion(tv.WorkflowID()) - 1,
+		LastWriteVersion: s.namespaceEntry.FailoverVersion(namespace.BusinessID{ID: tv.WorkflowID()}) - 1,
 	}
 }
 
@@ -1260,7 +1260,7 @@ func (s *chasmEngineSuite) TestPollComponent_StaleState() {
 		RunId:       executionKey.RunID,
 		ArchetypeId: uint32(testComponentTypeID),
 		ExecutionVersionedTransition: &persistencespb.VersionedTransition{
-			NamespaceFailoverVersion: s.namespaceEntry.FailoverVersion(executionKey.BusinessID) + 1, // ahead of persisted state
+			NamespaceFailoverVersion: s.namespaceEntry.FailoverVersion(namespace.BusinessID{ID: executionKey.BusinessID}) + 1, // ahead of persisted state
 			TransitionCount:          testTransitionCount,
 		},
 	}
@@ -1858,7 +1858,7 @@ func (s *chasmEngineSuite) TestUpdateWithStartExecution_UpdatePathVersionConflic
 		nil,
 	)
 
-	higherVersion := s.namespaceEntry.FailoverVersion(executionKey.BusinessID) + 100
+	higherVersion := s.namespaceEntry.FailoverVersion(namespace.BusinessID{ID: executionKey.BusinessID}) + 100
 	state.ExecutionInfo.TransitionHistory = []*persistencespb.VersionedTransition{
 		{
 			NamespaceFailoverVersion: higherVersion,
@@ -1944,7 +1944,7 @@ func (s *chasmEngineSuite) buildPersistenceMutableState(
 			},
 			TransitionHistory: []*persistencespb.VersionedTransition{
 				{
-					NamespaceFailoverVersion: s.namespaceEntry.FailoverVersion(key.BusinessID),
+					NamespaceFailoverVersion: s.namespaceEntry.FailoverVersion(namespace.BusinessID{ID: key.BusinessID}),
 					TransitionCount:          testTransitionCount,
 				},
 			},
@@ -1961,11 +1961,11 @@ func (s *chasmEngineSuite) buildPersistenceMutableState(
 			"": {
 				Metadata: &persistencespb.ChasmNodeMetadata{
 					InitialVersionedTransition: &persistencespb.VersionedTransition{
-						NamespaceFailoverVersion: s.namespaceEntry.FailoverVersion(key.BusinessID),
+						NamespaceFailoverVersion: s.namespaceEntry.FailoverVersion(namespace.BusinessID{ID: key.BusinessID}),
 						TransitionCount:          1,
 					},
 					LastUpdateVersionedTransition: &persistencespb.VersionedTransition{
-						NamespaceFailoverVersion: s.namespaceEntry.FailoverVersion(key.BusinessID),
+						NamespaceFailoverVersion: s.namespaceEntry.FailoverVersion(namespace.BusinessID{ID: key.BusinessID}),
 						TransitionCount:          testTransitionCount,
 					},
 					Attributes: &persistencespb.ChasmNodeMetadata_ComponentAttributes{

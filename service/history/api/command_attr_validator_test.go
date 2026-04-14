@@ -348,7 +348,7 @@ func (s *commandAttrValidatorSuite) TestValidateCrossNamespaceCall_LocalToLocal(
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testNamespaceID).Return(namespaceEntry, nil)
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testTargetNamespaceID).Return(targetNamespaceEntry, nil)
 
-	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, "test-workflow-id", s.testTargetNamespaceID, "test-target-workflow-id")
+	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, namespace.BusinessID{ID: "test-workflow-id"}, s.testTargetNamespaceID, namespace.BusinessID{ID: "test-target-workflow-id"})
 	s.Nil(err)
 }
 
@@ -371,7 +371,7 @@ func (s *commandAttrValidatorSuite) TestValidateCrossNamespaceCall_LocalToEffect
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testNamespaceID).Return(namespaceEntry, nil)
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testTargetNamespaceID).Return(targetNamespaceEntry, nil)
 
-	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, "test-workflow-id", s.testTargetNamespaceID, "test-target-workflow-id")
+	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, namespace.BusinessID{ID: "test-workflow-id"}, s.testTargetNamespaceID, namespace.BusinessID{ID: "test-target-workflow-id"})
 	s.Nil(err)
 }
 
@@ -394,7 +394,7 @@ func (s *commandAttrValidatorSuite) TestValidateCrossNamespaceCall_LocalToEffect
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testNamespaceID).Return(namespaceEntry, nil)
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testTargetNamespaceID).Return(targetNamespaceEntry, nil)
 
-	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, "test-workflow-id", s.testTargetNamespaceID, "test-target-workflow-id")
+	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, namespace.BusinessID{ID: "test-workflow-id"}, s.testTargetNamespaceID, namespace.BusinessID{ID: "test-target-workflow-id"})
 	s.IsType(&serviceerror.InvalidArgument{}, err)
 }
 
@@ -420,7 +420,7 @@ func (s *commandAttrValidatorSuite) TestValidateCrossNamespaceCall_LocalToGlobal
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testNamespaceID).Return(namespaceEntry, nil)
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testTargetNamespaceID).Return(targetNamespaceEntry, nil)
 
-	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, "test-workflow-id", s.testTargetNamespaceID, "test-target-workflow-id")
+	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, namespace.BusinessID{ID: "test-workflow-id"}, s.testTargetNamespaceID, namespace.BusinessID{ID: "test-target-workflow-id"})
 	s.IsType(&serviceerror.InvalidArgument{}, err)
 }
 
@@ -443,7 +443,7 @@ func (s *commandAttrValidatorSuite) TestValidateCrossNamespaceCall_EffectiveLoca
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testNamespaceID).Return(namespaceEntry, nil)
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testTargetNamespaceID).Return(targetNamespaceEntry, nil)
 
-	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, "test-workflow-id", s.testTargetNamespaceID, "test-target-workflow-id")
+	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, namespace.BusinessID{ID: "test-workflow-id"}, s.testTargetNamespaceID, namespace.BusinessID{ID: "test-target-workflow-id"})
 	s.Nil(err)
 }
 
@@ -466,7 +466,7 @@ func (s *commandAttrValidatorSuite) TestValidateCrossNamespaceCall_EffectiveLoca
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testNamespaceID).Return(namespaceEntry, nil)
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testTargetNamespaceID).Return(targetNamespaceEntry, nil)
 
-	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, "test-workflow-id", s.testTargetNamespaceID, "test-target-workflow-id")
+	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, namespace.BusinessID{ID: "test-workflow-id"}, s.testTargetNamespaceID, namespace.BusinessID{ID: "test-target-workflow-id"})
 	s.IsType(&serviceerror.InvalidArgument{}, err)
 }
 
@@ -493,7 +493,7 @@ func (s *commandAttrValidatorSuite) TestValidateCrossNamespaceCall_EffectiveLoca
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testNamespaceID).Return(namespaceEntry, nil)
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testTargetNamespaceID).Return(targetNamespaceEntry, nil)
 
-	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, "test-workflow-id", s.testTargetNamespaceID, "test-target-workflow-id")
+	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, namespace.BusinessID{ID: "test-workflow-id"}, s.testTargetNamespaceID, namespace.BusinessID{ID: "test-target-workflow-id"})
 	s.Nil(err)
 }
 
@@ -520,7 +520,7 @@ func (s *commandAttrValidatorSuite) TestValidateCrossNamespaceCall_EffectiveLoca
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testNamespaceID).Return(namespaceEntry, nil)
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testTargetNamespaceID).Return(targetNamespaceEntry, nil)
 
-	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, "test-workflow-id", s.testTargetNamespaceID, "test-target-workflow-id")
+	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, namespace.BusinessID{ID: "test-workflow-id"}, s.testTargetNamespaceID, namespace.BusinessID{ID: "test-target-workflow-id"})
 	s.IsType(&serviceerror.InvalidArgument{}, err)
 }
 
@@ -552,7 +552,7 @@ func (s *commandAttrValidatorSuite) TestValidateCrossNamespaceCall_EffectiveLoca
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testNamespaceID).Return(namespaceEntry, nil)
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testTargetNamespaceID).Return(targetNamespaceEntry, nil)
 
-	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, "test-workflow-id", s.testTargetNamespaceID, "test-target-workflow-id")
+	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, namespace.BusinessID{ID: "test-workflow-id"}, s.testTargetNamespaceID, namespace.BusinessID{ID: "test-target-workflow-id"})
 	s.IsType(&serviceerror.InvalidArgument{}, err)
 }
 
@@ -578,7 +578,7 @@ func (s *commandAttrValidatorSuite) TestValidateCrossNamespaceCall_GlobalToLocal
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testNamespaceID).Return(namespaceEntry, nil)
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testTargetNamespaceID).Return(targetNamespaceEntry, nil)
 
-	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, "test-workflow-id", s.testTargetNamespaceID, "test-target-workflow-id")
+	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, namespace.BusinessID{ID: "test-workflow-id"}, s.testTargetNamespaceID, namespace.BusinessID{ID: "test-target-workflow-id"})
 	s.IsType(&serviceerror.InvalidArgument{}, err)
 }
 
@@ -610,7 +610,7 @@ func (s *commandAttrValidatorSuite) TestValidateCrossNamespaceCall_GlobalToEffec
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testNamespaceID).Return(namespaceEntry, nil)
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testTargetNamespaceID).Return(targetNamespaceEntry, nil)
 
-	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, "test-workflow-id", s.testTargetNamespaceID, "test-target-workflow-id")
+	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, namespace.BusinessID{ID: "test-workflow-id"}, s.testTargetNamespaceID, namespace.BusinessID{ID: "test-target-workflow-id"})
 	s.IsType(&serviceerror.InvalidArgument{}, err)
 }
 
@@ -643,14 +643,14 @@ func (s *commandAttrValidatorSuite) TestValidateCrossNamespaceCall_GlobalToGloba
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testNamespaceID).Return(namespaceEntry, nil)
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(s.testTargetNamespaceID).Return(targetNamespaceEntry, nil)
 
-	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, "test-workflow-id", s.testTargetNamespaceID, "test-target-workflow-id")
+	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, namespace.BusinessID{ID: "test-workflow-id"}, s.testTargetNamespaceID, namespace.BusinessID{ID: "test-target-workflow-id"})
 	s.IsType(&serviceerror.InvalidArgument{}, err)
 }
 
 func (s *commandAttrValidatorSuite) TestValidateCrossNamespaceCall_GlobalToGlobal_SameNamespace() {
 	targetNamespaceID := s.testNamespaceID
 
-	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, "test-workflow-id", targetNamespaceID, "test-target-workflow-id")
+	err := s.validator.validateCrossNamespaceCall(s.testNamespaceID, namespace.BusinessID{ID: "test-workflow-id"}, targetNamespaceID, namespace.BusinessID{ID: "test-target-workflow-id"})
 	s.Nil(err)
 }
 

@@ -114,7 +114,7 @@ func (s *transferQueueStandbyTaskExecutorSuite) SetupTest() {
 
 	s.namespaceEntry = tests.GlobalStandbyNamespaceEntry
 	s.namespaceID = s.namespaceEntry.ID()
-	s.version = s.namespaceEntry.FailoverVersion(namespace.EmptyBusinessID)
+	s.version = s.namespaceEntry.FailoverVersion(namespace.BusinessID{})
 	s.now = time.Now().UTC()
 	s.timeSource = clock.NewEventTimeSource().Update(s.now)
 	s.localVerificationDuration = time.Minute * 10
@@ -798,7 +798,7 @@ func (s *transferQueueStandbyTaskExecutorSuite) TestProcessCloseExecution() {
 	})
 
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(namespace.ID(parentNamespaceID)).Return(tests.GlobalParentNamespaceEntry, nil).AnyTimes()
-	s.clientBean.EXPECT().GetRemoteAdminClient(tests.GlobalChildNamespaceEntry.ActiveClusterName(parentExecution.WorkflowId)).Return(s.mockRemoteAdminClient, nil).AnyTimes()
+	s.clientBean.EXPECT().GetRemoteAdminClient(tests.GlobalChildNamespaceEntry.ActiveClusterName(namespace.BusinessID{ID: parentExecution.WorkflowId})).Return(s.mockRemoteAdminClient, nil).AnyTimes()
 	s.mockRemoteAdminClient.EXPECT().DescribeMutableState(gomock.Any(), protomock.Eq(&adminservice.DescribeMutableStateRequest{
 		Namespace:       tests.ParentNamespace.String(),
 		Execution:       parentExecution,

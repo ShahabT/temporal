@@ -324,7 +324,7 @@ func (s *engine2Suite) TestRecordWorkflowTaskStartedSuccessStickyEnabled() {
 	if executionInfo.LastCompletedWorkflowTaskStartedEventId != common.EmptyEventID {
 		expectedResponse.PreviousStartedEventId = executionInfo.LastCompletedWorkflowTaskStartedEventId
 	}
-	expectedResponse.Version = tests.GlobalNamespaceEntry.FailoverVersion(we.WorkflowId)
+	expectedResponse.Version = tests.GlobalNamespaceEntry.FailoverVersion(namespace.BusinessID{ID: we.WorkflowId})
 	expectedResponse.ScheduledEventId = wt.ScheduledEventID
 	expectedResponse.ScheduledTime = timestamppb.New(wt.ScheduledTime)
 	expectedResponse.StartedEventId = wt.ScheduledEventID + 1
@@ -434,7 +434,7 @@ func (s *engine2Suite) TestRecordWorkflowTaskStartedSuccessStickyEnabled_WithInt
 	if executionInfo.LastCompletedWorkflowTaskStartedEventId != common.EmptyEventID {
 		expectedResponse.PreviousStartedEventId = executionInfo.LastCompletedWorkflowTaskStartedEventId
 	}
-	expectedResponse.Version = tests.GlobalNamespaceEntry.FailoverVersion(we.WorkflowId)
+	expectedResponse.Version = tests.GlobalNamespaceEntry.FailoverVersion(namespace.BusinessID{ID: we.WorkflowId})
 	expectedResponse.ScheduledEventId = wt.ScheduledEventID
 	expectedResponse.ScheduledTime = timestamppb.New(wt.ScheduledTime)
 	expectedResponse.StartedEventId = wt.ScheduledEventID + 1
@@ -502,7 +502,7 @@ func (s *engine2Suite) TestRecordWorkflowTaskStarted_NoMessages() {
 	// Use UpdateCurrentVersion explicitly here,
 	// because there is no call to CloseTransactionAsSnapshot,
 	// because it converts speculative WT to normal, but WT needs to be speculative for this test.
-	err := ms.UpdateCurrentVersion(tests.GlobalNamespaceEntry.FailoverVersion(workflowExecution.GetWorkflowId()), true)
+	err := ms.UpdateCurrentVersion(tests.GlobalNamespaceEntry.FailoverVersion(namespace.BusinessID{ID: workflowExecution.GetWorkflowId()}), true)
 	s.NoError(err)
 
 	s.mockExecutionMgr.EXPECT().GetWorkflowExecution(gomock.Any(), gomock.Any()).DoAndReturn(

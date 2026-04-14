@@ -311,7 +311,7 @@ func TestBusinessIDInterceptor_AllMethods(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.methodName, func(t *testing.T) {
-			var capturedBusinessID string
+			capturedBusinessID := namespace.BusinessID{}
 			handler := func(ctx context.Context, req any) (any, error) {
 				capturedBusinessID = GetBusinessIDFromContext(ctx)
 				return nil, nil
@@ -358,7 +358,7 @@ func TestBusinessIDInterceptor_SkipsNonWorkflowServiceAndUnmappedMethods(t *test
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			var capturedBusinessID string
+			capturedBusinessID := namespace.BusinessID{}
 			handler := func(ctx context.Context, req any) (any, error) {
 				capturedBusinessID = GetBusinessIDFromContext(ctx)
 				return nil, nil
@@ -367,7 +367,7 @@ func TestBusinessIDInterceptor_SkipsNonWorkflowServiceAndUnmappedMethods(t *test
 			info := &grpc.UnaryServerInfo{FullMethod: tc.fullMethod}
 			_, err := interceptor.Intercept(context.Background(), tc.request, info, handler)
 			require.NoError(t, err)
-			require.Equal(t, namespace.EmptyBusinessID, capturedBusinessID)
+			require.Empty(t, capturedBusinessID)
 		})
 	}
 }
@@ -384,25 +384,25 @@ func TestBusinessIDInterceptor_EdgeCases(t *testing.T) {
 		name               string
 		methodName         string
 		request            any
-		expectedBusinessID string
+		expectedBusinessID namespace.BusinessID
 	}{
 		{
 			name:               "NilWorkflowExecution",
 			methodName:         "TerminateWorkflowExecution",
 			request:            &workflowservice.TerminateWorkflowExecutionRequest{WorkflowExecution: nil},
-			expectedBusinessID: namespace.EmptyBusinessID,
+			expectedBusinessID: namespace.BusinessID{},
 		},
 		{
 			name:               "InvalidTaskToken",
 			methodName:         "RespondActivityTaskCompleted",
 			request:            &workflowservice.RespondActivityTaskCompletedRequest{TaskToken: []byte("invalid")},
-			expectedBusinessID: namespace.EmptyBusinessID,
+			expectedBusinessID: namespace.BusinessID{},
 		},
 		{
 			name:               "EmptyMultiOperations",
 			methodName:         "ExecuteMultiOperation",
 			request:            &workflowservice.ExecuteMultiOperationRequest{Operations: nil},
-			expectedBusinessID: namespace.EmptyBusinessID,
+			expectedBusinessID: namespace.BusinessID{},
 		},
 		{
 			name:       "MultiOperation_UpdateWorkflowFallback",
@@ -419,13 +419,13 @@ func TestBusinessIDInterceptor_EdgeCases(t *testing.T) {
 					},
 				},
 			},
-			expectedBusinessID: "wf-update",
+			expectedBusinessID: namespace.BusinessID{ID: "wf-update"},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			var capturedBusinessID string
+			capturedBusinessID := namespace.BusinessID{}
 			handler := func(ctx context.Context, req any) (any, error) {
 				capturedBusinessID = GetBusinessIDFromContext(ctx)
 				return nil, nil
@@ -444,12 +444,12 @@ func TestBusinessIDInterceptor_EdgeCases(t *testing.T) {
 
 func TestBusinessIDContext(t *testing.T) {
 	t.Run("RoundTrip", func(t *testing.T) {
-		ctx := AddBusinessIDToContext(context.Background(), "test-business-id")
+		ctx := AddBusinessIDToContext(context.Background(), namespace.BusinessID{ID: "test-business-id"})
 		require.Equal(t, "test-business-id", GetBusinessIDFromContext(ctx))
 	})
 
-	t.Run("MissingReturnsEmptyBusinessID", func(t *testing.T) {
-		require.Equal(t, namespace.EmptyBusinessID, GetBusinessIDFromContext(context.Background()))
+	t.Run("MissingReturnsBusinessID{}", func(t *testing.T) {
+		require.Equal(t, namespace.BusinessID{}, GetBusinessIDFromContext(context.Background()))
 	})
 }
 
@@ -457,17 +457,17 @@ func TestBusinessIDInterceptor_MultipleExtractors(t *testing.T) {
 	logger := log.NewTestLogger()
 
 	// Create two custom extractors
-	customExtractor1 := func(_ context.Context, req any, fullMethod string) string {
+	customExtractor1 := func(_ context.Context, req any, fullMethod string) namespace.BusinessID {
 		if fullMethod == "/custom.service/Method1" {
-			return "extractor1-result"
+			return namespace.BusinessID{ID: "extractor1-result"}
 		}
-		return ""
+		return namespace.BusinessID{}
 	}
-	customExtractor2 := func(_ context.Context, req any, fullMethod string) string {
+	customExtractor2 := func(_ context.Context, req any, fullMethod string) namespace.BusinessID {
 		if fullMethod == "/custom.service/Method2" {
-			return "extractor2-result"
+			return namespace.BusinessID{ID: "extractor2-result"}
 		}
-		return ""
+		return namespace.BusinessID{}
 	}
 
 	interceptor := NewBusinessIDInterceptor(
@@ -478,28 +478,28 @@ func TestBusinessIDInterceptor_MultipleExtractors(t *testing.T) {
 	testCases := []struct {
 		name               string
 		fullMethod         string
-		expectedBusinessID string
+		expectedBusinessID namespace.BusinessID
 	}{
 		{
 			name:               "FirstExtractorMatches",
 			fullMethod:         "/custom.service/Method1",
-			expectedBusinessID: "extractor1-result",
+			expectedBusinessID: namespace.BusinessID{ID: "extractor1-result"},
 		},
 		{
 			name:               "SecondExtractorMatches",
 			fullMethod:         "/custom.service/Method2",
-			expectedBusinessID: "extractor2-result",
+			expectedBusinessID: namespace.BusinessID{ID: "extractor2-result"},
 		},
 		{
 			name:               "NoExtractorMatches",
 			fullMethod:         "/custom.service/Method3",
-			expectedBusinessID: namespace.EmptyBusinessID,
+			expectedBusinessID: namespace.BusinessID{},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			var capturedBusinessID string
+			capturedBusinessID := namespace.BusinessID{}
 			handler := func(ctx context.Context, req any) (any, error) {
 				capturedBusinessID = GetBusinessIDFromContext(ctx)
 				return nil, nil
@@ -517,19 +517,19 @@ func TestBusinessIDInterceptor_WithExtractors(t *testing.T) {
 	logger := log.NewTestLogger()
 
 	// Original extractor
-	originalExtractor := func(_ context.Context, req any, fullMethod string) string {
+	originalExtractor := func(_ context.Context, req any, fullMethod string) namespace.BusinessID {
 		if fullMethod == "/original/Method" {
-			return "original-result"
+			return namespace.BusinessID{ID: "original-result"}
 		}
-		return ""
+		return namespace.BusinessID{}
 	}
 
 	// New extractor to prepend
-	newExtractor := func(_ context.Context, req any, fullMethod string) string {
+	newExtractor := func(_ context.Context, req any, fullMethod string) namespace.BusinessID {
 		if fullMethod == "/new/Method" {
-			return "new-result"
+			return namespace.BusinessID{ID: "new-result"}
 		}
-		return ""
+		return namespace.BusinessID{}
 	}
 
 	// Create interceptor with original extractor
@@ -542,7 +542,7 @@ func TestBusinessIDInterceptor_WithExtractors(t *testing.T) {
 	extendedInterceptor := originalInterceptor.WithExtractors(newExtractor)
 
 	t.Run("NewExtractorMatchesFirst", func(t *testing.T) {
-		var capturedBusinessID string
+		capturedBusinessID := namespace.BusinessID{}
 		handler := func(ctx context.Context, req any) (any, error) {
 			capturedBusinessID = GetBusinessIDFromContext(ctx)
 			return nil, nil
@@ -555,7 +555,7 @@ func TestBusinessIDInterceptor_WithExtractors(t *testing.T) {
 	})
 
 	t.Run("OriginalExtractorStillWorks", func(t *testing.T) {
-		var capturedBusinessID string
+		capturedBusinessID := namespace.BusinessID{}
 		handler := func(ctx context.Context, req any) (any, error) {
 			capturedBusinessID = GetBusinessIDFromContext(ctx)
 			return nil, nil
@@ -568,7 +568,7 @@ func TestBusinessIDInterceptor_WithExtractors(t *testing.T) {
 	})
 
 	t.Run("OriginalInterceptorUnchanged", func(t *testing.T) {
-		var capturedBusinessID string
+		capturedBusinessID := namespace.BusinessID{}
 		handler := func(ctx context.Context, req any) (any, error) {
 			capturedBusinessID = GetBusinessIDFromContext(ctx)
 			return nil, nil
@@ -578,7 +578,7 @@ func TestBusinessIDInterceptor_WithExtractors(t *testing.T) {
 		info := &grpc.UnaryServerInfo{FullMethod: "/new/Method"}
 		_, err := originalInterceptor.Intercept(context.Background(), nil, info, handler)
 		require.NoError(t, err)
-		require.Equal(t, namespace.EmptyBusinessID, capturedBusinessID)
+		require.Equal(t, namespace.BusinessID{}, capturedBusinessID)
 	})
 }
 
@@ -586,17 +586,17 @@ func TestBusinessIDInterceptor_FirstMatchingExtractorWins(t *testing.T) {
 	logger := log.NewTestLogger()
 
 	// Both extractors match the same method, but first should win
-	extractor1 := func(_ context.Context, req any, fullMethod string) string {
+	extractor1 := func(_ context.Context, req any, fullMethod string) namespace.BusinessID {
 		if fullMethod == "/test/Method" {
-			return "first-wins"
+			return namespace.BusinessID{ID: "first-wins"}
 		}
-		return ""
+		return namespace.BusinessID{}
 	}
-	extractor2 := func(_ context.Context, req any, fullMethod string) string {
+	extractor2 := func(_ context.Context, req any, fullMethod string) namespace.BusinessID {
 		if fullMethod == "/test/Method" {
-			return "second-loses"
+			return namespace.BusinessID{ID: "second-loses"}
 		}
-		return ""
+		return namespace.BusinessID{}
 	}
 
 	interceptor := NewBusinessIDInterceptor(
@@ -604,7 +604,7 @@ func TestBusinessIDInterceptor_FirstMatchingExtractorWins(t *testing.T) {
 		logger,
 	)
 
-	var capturedBusinessID string
+	capturedBusinessID := namespace.BusinessID{}
 	handler := func(ctx context.Context, req any) (any, error) {
 		capturedBusinessID = GetBusinessIDFromContext(ctx)
 		return nil, nil

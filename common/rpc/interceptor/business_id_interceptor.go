@@ -16,8 +16,8 @@ type (
 	BusinessIDPattern int
 
 	// BusinessIDExtractorFunc extracts business ID from a request.
-	// Returns empty string if this extractor doesn't handle the request.
-	BusinessIDExtractorFunc func(ctx context.Context, req any, fullMethod string) string
+	// Returns a zero-value BusinessID if this extractor doesn't handle the request.
+	BusinessIDExtractorFunc func(ctx context.Context, req any, fullMethod string) namespace.BusinessID
 
 	// BusinessIDInterceptor extracts business ID from requests and adds it to context.
 	// It iterates through a list of extractor functions until one returns a non-empty business ID.
@@ -171,12 +171,12 @@ func (i *BusinessIDInterceptor) Intercept(
 ) (any, error) {
 	// Try each extractor until one returns a non-empty businessID
 	for _, extractor := range i.extractors {
-		if businessID := extractor(ctx, req, info.FullMethod); businessID != "" {
+		if bid := extractor(ctx, req, info.FullMethod); bid.ID != "" || bid.RoutingStrategy != namespace.RoutingStrategyDefault {
 			i.logger.Debug("business ID extraction: adding business ID to context",
-				tag.WorkflowID(businessID),
+				tag.WorkflowID(bid.ID),
 				tag.String("grpc-method", info.FullMethod),
 			)
-			ctx = AddBusinessIDToContext(ctx, businessID)
+			ctx = AddBusinessIDToContext(ctx, bid)
 			break
 		}
 	}
@@ -185,15 +185,15 @@ func (i *BusinessIDInterceptor) Intercept(
 }
 
 // AddBusinessIDToContext adds the business ID to the context
-func AddBusinessIDToContext(ctx context.Context, businessID string) context.Context {
+func AddBusinessIDToContext(ctx context.Context, businessID namespace.BusinessID) context.Context {
 	return context.WithValue(ctx, businessIDCtxKey, businessID)
 }
 
 // GetBusinessIDFromContext retrieves the business ID from the context.
-// Returns namespace.EmptyBusinessID if not found.
-func GetBusinessIDFromContext(ctx context.Context) string {
-	if businessID, ok := ctx.Value(businessIDCtxKey).(string); ok {
+// Returns a zero-value BusinessID if not found.
+func GetBusinessIDFromContext(ctx context.Context) namespace.BusinessID {
+	if businessID, ok := ctx.Value(businessIDCtxKey).(namespace.BusinessID); ok {
 		return businessID
 	}
-	return namespace.EmptyBusinessID
+	return namespace.BusinessID{}
 }

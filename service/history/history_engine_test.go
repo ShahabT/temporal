@@ -5276,13 +5276,13 @@ func (s *engineSuite) TestReapplyEvents_ReturnSuccess() {
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(namespaceEntry.ID()).Return(namespaceEntry, nil).AnyTimes()
 	s.mockNamespaceCache.EXPECT().GetNamespace(namespaceEntry.Name()).Return(namespaceEntry, nil).AnyTimes()
 	s.mockClusterMetadata.EXPECT().ClusterNameForFailoverVersion(true, eventVersion).Return(cluster.TestAlternativeClusterName).AnyTimes()
-	s.mockClusterMetadata.EXPECT().ClusterNameForFailoverVersion(true, namespaceEntry.FailoverVersion(workflowExecution.GetWorkflowId())).Return(cluster.TestCurrentClusterName).AnyTimes()
+	s.mockClusterMetadata.EXPECT().ClusterNameForFailoverVersion(true, namespaceEntry.FailoverVersion(namespace.BusinessID{ID: workflowExecution.GetWorkflowId()})).Return(cluster.TestCurrentClusterName).AnyTimes()
 
 	ms := workflow.TestGlobalMutableState(
 		s.historyEngine.shardContext,
 		s.eventsCache,
 		log.NewTestLogger(),
-		namespaceEntry.FailoverVersion(workflowExecution.GetWorkflowId()),
+		namespaceEntry.FailoverVersion(namespace.BusinessID{ID: workflowExecution.GetWorkflowId()}),
 		workflowExecution.GetWorkflowId(),
 		workflowExecution.GetRunId(),
 	)
@@ -5381,13 +5381,13 @@ func (s *engineSuite) TestReapplyEvents_ResetWorkflow() {
 	s.mockNamespaceCache.EXPECT().GetNamespaceByID(namespaceEntry.ID()).Return(namespaceEntry, nil).AnyTimes()
 	s.mockNamespaceCache.EXPECT().GetNamespace(namespaceEntry.Name()).Return(namespaceEntry, nil).AnyTimes()
 	s.mockClusterMetadata.EXPECT().ClusterNameForFailoverVersion(true, eventVersion).Return(cluster.TestAlternativeClusterName).AnyTimes()
-	s.mockClusterMetadata.EXPECT().ClusterNameForFailoverVersion(true, namespaceEntry.FailoverVersion(workflowExecution.GetWorkflowId())).Return(cluster.TestCurrentClusterName).AnyTimes()
+	s.mockClusterMetadata.EXPECT().ClusterNameForFailoverVersion(true, namespaceEntry.FailoverVersion(namespace.BusinessID{ID: workflowExecution.GetWorkflowId()})).Return(cluster.TestCurrentClusterName).AnyTimes()
 
 	ms := workflow.TestGlobalMutableState(
 		s.historyEngine.shardContext,
 		s.eventsCache,
 		log.NewTestLogger(),
-		namespaceEntry.FailoverVersion(workflowExecution.GetWorkflowId()),
+		namespaceEntry.FailoverVersion(namespace.BusinessID{ID: workflowExecution.GetWorkflowId()}),
 		workflowExecution.GetWorkflowId(),
 		workflowExecution.GetRunId(),
 	)

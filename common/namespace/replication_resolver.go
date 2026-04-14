@@ -5,13 +5,29 @@ import (
 	persistencespb "go.temporal.io/server/api/persistence/v1"
 )
 
+// RoutingStrategy determines how a business ID is used for routing decisions.
+type RoutingStrategy int
+
+const (
+	// RoutingStrategyDefault is the default routing strategy.
+	RoutingStrategyDefault RoutingStrategy = iota
+	// RoutingStrategyPollerGroup routes based on the poller group.
+	RoutingStrategyPollerGroup
+)
+
+// BusinessID holds a business identifier along with its routing strategy.
+type BusinessID struct {
+	ID              string
+	RoutingStrategy RoutingStrategy
+}
+
 type ReplicationResolver interface {
-	ActiveClusterName(businessID string) string
+	ActiveClusterName(businessID BusinessID) string
 	ActiveInCluster(clusterName string) bool
-	ClusterNames(businessID string) []string
-	ReplicationState(businessID string) enumspb.ReplicationState
+	ClusterNames(businessID BusinessID) []string
+	ReplicationState(businessID BusinessID) enumspb.ReplicationState
 	IsGlobalNamespace() bool
-	FailoverVersion(businessID string) int64
+	FailoverVersion(businessID BusinessID) int64
 	FailoverNotificationVersion() int64
 
 	// Mutation methods for modifying resolver state
@@ -45,7 +61,7 @@ func NewDefaultReplicationResolverFactory() ReplicationResolverFactory {
 	}
 }
 
-func (r *defaultReplicationResolver) ActiveClusterName(businessID string) string {
+func (r *defaultReplicationResolver) ActiveClusterName(businessID BusinessID) string {
 	if r.replicationConfig == nil {
 		return ""
 	}
@@ -61,7 +77,7 @@ func (r *defaultReplicationResolver) ActiveInCluster(clusterName string) bool {
 	return r.replicationConfig.ActiveClusterName == clusterName
 }
 
-func (r *defaultReplicationResolver) ClusterNames(businessID string) []string {
+func (r *defaultReplicationResolver) ClusterNames(businessID BusinessID) []string {
 	if r.replicationConfig == nil {
 		return nil
 	}
@@ -71,7 +87,7 @@ func (r *defaultReplicationResolver) ClusterNames(businessID string) []string {
 	return out
 }
 
-func (r *defaultReplicationResolver) ReplicationState(_ string) enumspb.ReplicationState {
+func (r *defaultReplicationResolver) ReplicationState(_ BusinessID) enumspb.ReplicationState {
 	if r.replicationConfig == nil {
 		return enumspb.REPLICATION_STATE_UNSPECIFIED
 	}
@@ -82,7 +98,7 @@ func (r *defaultReplicationResolver) IsGlobalNamespace() bool {
 	return r.isGlobalNamespace
 }
 
-func (r *defaultReplicationResolver) FailoverVersion(businessID string) int64 {
+func (r *defaultReplicationResolver) FailoverVersion(businessID BusinessID) int64 {
 	return r.failoverVersion
 }
 

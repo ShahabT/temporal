@@ -131,7 +131,7 @@ func (r *workflowResetterImpl) ResetWorkflow(
 	// update base workflow to point to new runID after the reset.
 	baseWorkflow.GetMutableState().UpdateResetRunID(resetRunID)
 
-	resetWorkflowVersion := namespaceEntry.FailoverVersion(workflowID)
+	resetWorkflowVersion := namespaceEntry.FailoverVersion(namespace.BusinessID{ID: workflowID})
 
 	var currentWorkflowMutation *persistence.WorkflowMutation
 	var currentWorkflowEventsSeq []*persistence.WorkflowEvents

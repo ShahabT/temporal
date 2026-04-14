@@ -18,6 +18,7 @@ import (
 	repication "go.temporal.io/server/api/replication/v1"
 	backoff "go.temporal.io/server/common/backoff"
 	definition "go.temporal.io/server/common/definition"
+	namespace "go.temporal.io/server/common/namespace"
 	serviceerror "go.temporal.io/server/common/serviceerror"
 	tasks "go.temporal.io/server/common/tasks"
 	gomock "go.uber.org/mock/gomock"
@@ -126,7 +127,7 @@ func (mr *MockExecutableTaskMockRecorder) DeleteWorkflow(ctx, workflowKey any) *
 }
 
 // GetNamespaceInfo mocks base method.
-func (m *MockExecutableTask) GetNamespaceInfo(ctx context.Context, namespaceID, businessID string) (string, bool, error) {
+func (m *MockExecutableTask) GetNamespaceInfo(ctx context.Context, namespaceID string, businessID namespace.BusinessID) (string, bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetNamespaceInfo", ctx, namespaceID, businessID)
 	ret0, _ := ret[0].(string)

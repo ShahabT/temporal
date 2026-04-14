@@ -80,7 +80,7 @@ func (e *ExecutableBackfillHistoryEventsTask) Execute() error {
 	namespaceName, apply, nsError := e.GetNamespaceInfo(headers.SetCallerInfo(
 		context.Background(),
 		callerInfo,
-	), e.NamespaceID, e.WorkflowID)
+	), e.NamespaceID, namespace.BusinessID{ID: e.WorkflowID})
 	if nsError != nil {
 		return nsError
 	} else if !apply {
@@ -157,7 +157,7 @@ func (e *ExecutableBackfillHistoryEventsTask) HandleErr(err error) error {
 		namespaceName, _, nsError := e.GetNamespaceInfo(headers.SetCallerInfo(
 			context.Background(),
 			callerInfo,
-		), e.NamespaceID, e.WorkflowID)
+		), e.NamespaceID, namespace.BusinessID{ID: e.WorkflowID})
 		if nsError != nil {
 			return err
 		}
@@ -186,7 +186,7 @@ func (e *ExecutableBackfillHistoryEventsTask) HandleErr(err error) error {
 		namespaceName, _, nsError := e.GetNamespaceInfo(headers.SetCallerInfo(
 			context.Background(),
 			callerInfo,
-		), e.NamespaceID, e.WorkflowID)
+		), e.NamespaceID, namespace.BusinessID{ID: e.WorkflowID})
 		if nsError != nil {
 			return err
 		}

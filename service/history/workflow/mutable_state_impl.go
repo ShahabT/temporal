@@ -334,7 +334,7 @@ func NewMutableState(
 		approximateSize:              0,
 		chasmNodeSizes:               make(map[string]int),
 		totalTombstones:              0,
-		currentVersion:               namespaceEntry.FailoverVersion(workflowID),
+		currentVersion:               namespaceEntry.FailoverVersion(namespace.BusinessID{ID: workflowID}),
 		bufferEventsInDB:             nil,
 		stateInDB:                    enumsspb.WORKFLOW_EXECUTION_STATE_VOID,
 		nextEventIDInDB:              common.FirstEventID,
@@ -6920,7 +6920,7 @@ func (ms *MutableStateImpl) StartTransaction(
 		return false, err
 	}
 	ms.namespaceEntry = namespaceEntry
-	if err := ms.UpdateCurrentVersion(namespaceEntry.FailoverVersion(ms.executionInfo.WorkflowId), false); err != nil {
+	if err := ms.UpdateCurrentVersion(namespaceEntry.FailoverVersion(namespace.BusinessID{ID: ms.executionInfo.WorkflowId}), false); err != nil {
 		return false, err
 	}
 
@@ -8081,7 +8081,7 @@ func (ms *MutableStateImpl) startTransactionHandleNamespaceMigration(
 	}
 
 	// local namespace -> global namespace && with started workflow task
-	if lastWriteVersion == common.EmptyVersion && namespaceEntry.FailoverVersion(ms.executionInfo.WorkflowId) > common.EmptyVersion && ms.HasStartedWorkflowTask() {
+	if lastWriteVersion == common.EmptyVersion && namespaceEntry.FailoverVersion(namespace.BusinessID{ID: ms.executionInfo.WorkflowId}) > common.EmptyVersion && ms.HasStartedWorkflowTask() {
 		localNamespaceMutation := namespace.WithPretendLocalNamespace(
 			ms.clusterMetadata.GetCurrentClusterName(),
 		)
@@ -8346,7 +8346,7 @@ func (ms *MutableStateImpl) closeTransactionCollapseVisibilityTasks() {
 }
 
 func (ms *MutableStateImpl) generateReplicationTask() bool {
-	return len(ms.namespaceEntry.ClusterNames(ms.GetWorkflowKey().WorkflowID)) > 1
+	return len(ms.namespaceEntry.ClusterNames(namespace.BusinessID{ID: ms.GetWorkflowKey().WorkflowID})) > 1
 }
 
 func (ms *MutableStateImpl) checkMutability(

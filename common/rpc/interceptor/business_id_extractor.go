@@ -27,16 +27,16 @@ func NewBusinessIDExtractor() BusinessIDExtractor {
 // WorkflowServiceExtractor returns a BusinessIDExtractorFunc that extracts business ID
 // from WorkflowService API requests using the provided BusinessIDExtractor.
 func WorkflowServiceExtractor(extractor BusinessIDExtractor) BusinessIDExtractorFunc {
-	return func(_ context.Context, req any, fullMethod string) string {
+	return func(_ context.Context, req any, fullMethod string) namespace.BusinessID {
 		// Only process WorkflowService APIs
 		if !strings.HasPrefix(fullMethod, api.WorkflowServicePrefix) {
-			return ""
+			return namespace.BusinessID{}
 		}
 
 		methodName := api.MethodName(fullMethod)
 		pattern, hasPattern := methodToPattern[methodName]
 		if !hasPattern {
-			return ""
+			return namespace.BusinessID{}
 		}
 
 		return extractor.Extract(req, pattern)
@@ -91,30 +91,32 @@ type (
 )
 
 // Extract extracts business ID from the request using the specified pattern.
-// Returns the business ID or namespace.EmptyBusinessID if not found.
-func (e BusinessIDExtractor) Extract(req any, pattern BusinessIDPattern) string {
+// Returns a zero-value namespace.BusinessID if not found.
+//
+//nolint:revive // cognitive-complexity
+func (e BusinessIDExtractor) Extract(req any, pattern BusinessIDPattern) namespace.BusinessID {
 	if req == nil {
-		return namespace.EmptyBusinessID
+		return namespace.BusinessID{}
 	}
 
 	//nolint:revive // identical-switch-branches: PatternNone and default both fall through intentionally
 	switch pattern {
 	case PatternWorkflowID:
 		if getter, ok := req.(workflowIDGetter); ok {
-			return getter.GetWorkflowId()
+			return namespace.BusinessID{ID: getter.GetWorkflowId()}
 		}
 
 	case PatternWorkflowExecution:
 		if getter, ok := req.(workflowExecutionGetter); ok {
 			if exec := getter.GetWorkflowExecution(); exec != nil {
-				return exec.GetWorkflowId()
+				return namespace.BusinessID{ID: exec.GetWorkflowId()}
 			}
 		}
 
 	case PatternExecution:
 		if getter, ok := req.(executionGetter); ok {
 			if exec := getter.GetExecution(); exec != nil {
-				return exec.GetWorkflowId()
+				return namespace.BusinessID{ID: exec.GetWorkflowId()}
 			}
 		}
 
@@ -122,7 +124,7 @@ func (e BusinessIDExtractor) Extract(req any, pattern BusinessIDPattern) string 
 		if getter, ok := req.(taskTokenGetter); ok {
 			if tokenBytes := getter.GetTaskToken(); len(tokenBytes) > 0 {
 				if taskToken, err := e.serializer.Deserialize(tokenBytes); err == nil {
-					return taskToken.GetWorkflowId()
+					return namespace.BusinessID{ID: taskToken.GetWorkflowId()}
 				}
 			}
 		}
@@ -132,41 +134,41 @@ func (e BusinessIDExtractor) Extract(req any, pattern BusinessIDPattern) string 
 
 	case PatternTaskQueueName:
 		if getter, ok := req.(taskQueueNameGetter); ok {
-			return getter.GetTaskQueue()
+			return namespace.BusinessID{ID: getter.GetTaskQueue()}
 		}
 
 	case PatternTaskQueueNameFromMessage:
 		if getter, ok := req.(taskQueueNameFromMessageGetter); ok {
 			if tq := getter.GetTaskQueue(); tq != nil {
-				return tq.GetName()
+				return namespace.BusinessID{ID: tq.GetName()}
 			}
 		}
 
 	case PatternDeploymentName:
 		if getter, ok := req.(deploymentNameGetter); ok {
-			return getter.GetDeploymentName()
+			return namespace.BusinessID{ID: getter.GetDeploymentName()}
 		}
 
 	case PatternDeploymentVersion:
 		if getter, ok := req.(deploymentVersionGetter); ok {
 			if dv := getter.GetDeploymentVersion(); dv != nil {
-				return dv.GetDeploymentName()
+				return namespace.BusinessID{ID: dv.GetDeploymentName()}
 			}
 		}
 
 	case PatternPollerGroupID:
 		if getter, ok := req.(pollerGroupIDGetter); ok {
-			return getter.GetPollerGroupId()
+			return namespace.BusinessID{ID: getter.GetPollerGroupId(), RoutingStrategy: namespace.RoutingStrategyPollerGroup}
 		}
 
 	case PatternNamespace:
 		if getter, ok := req.(namespaceGetter); ok {
-			return getter.GetNamespace()
+			return namespace.BusinessID{ID: getter.GetNamespace()}
 		}
 
 	case PatternUpdateRef:
 		if getter, ok := req.(updateRefGetter); ok {
-			return getter.GetUpdateRef().GetWorkflowExecution().GetWorkflowId()
+			return namespace.BusinessID{ID: getter.GetUpdateRef().GetWorkflowExecution().GetWorkflowId()}
 		}
 
 	case PatternNone:
@@ -176,25 +178,25 @@ func (e BusinessIDExtractor) Extract(req any, pattern BusinessIDPattern) string 
 		// Unknown pattern
 	}
 
-	return namespace.EmptyBusinessID
+	return namespace.BusinessID{}
 }
 
 // extractMultiOperation extracts business ID from ExecuteMultiOperationRequest.
 // The business ID is extracted from the first operation's StartWorkflow request.
-func (e BusinessIDExtractor) extractMultiOperation(req any) string {
+func (e BusinessIDExtractor) extractMultiOperation(req any) namespace.BusinessID {
 	multiOpReq, ok := req.(*workflowservice.ExecuteMultiOperationRequest)
 	if !ok {
-		return namespace.EmptyBusinessID
+		return namespace.BusinessID{}
 	}
 
 	ops := multiOpReq.GetOperations()
 	if len(ops) == 0 {
-		return namespace.EmptyBusinessID
+		return namespace.BusinessID{}
 	}
 
 	firstOp := ops[0]
 	if firstOp == nil {
-		return namespace.EmptyBusinessID
+		return namespace.BusinessID{}
 	}
 
 	startWorkflow := firstOp.GetStartWorkflow()
@@ -202,10 +204,10 @@ func (e BusinessIDExtractor) extractMultiOperation(req any) string {
 		// First operation is not StartWorkflow - try to get from UpdateWorkflow
 		updateWorkflow := firstOp.GetUpdateWorkflow()
 		if updateWorkflow != nil && updateWorkflow.GetWorkflowExecution() != nil {
-			return updateWorkflow.GetWorkflowExecution().GetWorkflowId()
+			return namespace.BusinessID{ID: updateWorkflow.GetWorkflowExecution().GetWorkflowId()}
 		}
-		return namespace.EmptyBusinessID
+		return namespace.BusinessID{}
 	}
 
-	return startWorkflow.GetWorkflowId()
+	return namespace.BusinessID{ID: startWorkflow.GetWorkflowId()}
 }

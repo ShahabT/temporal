@@ -86,7 +86,7 @@ func (e *ExecutableDeleteExecutionTask) Execute() error {
 	namespaceName, apply, err := e.GetNamespaceInfo(headers.SetCallerInfo(
 		context.Background(),
 		callerInfo,
-	), e.NamespaceID, e.BusinessID)
+	), e.NamespaceID, namespace.BusinessID{ID: e.BusinessID})
 	if err != nil {
 		return err
 	} else if !apply {

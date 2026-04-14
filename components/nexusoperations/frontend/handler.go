@@ -230,15 +230,15 @@ func (h *completionHandler) CompleteOperation(ctx context.Context, r *nexusrpc.C
 }
 
 func (h *completionHandler) forwardCompleteOperation(ctx context.Context, r *nexusrpc.CompletionRequest, rCtx *requestContext) error {
-	client, err := h.ForwardingClients.Get(rCtx.namespace.ActiveClusterName(rCtx.workflowID))
+	client, err := h.ForwardingClients.Get(rCtx.namespace.ActiveClusterName(namespace.BusinessID{ID: rCtx.workflowID}))
 	if err != nil {
-		h.Logger.Error("unable to get HTTP client for forward request", tag.Operation(apiName), tag.WorkflowNamespace(rCtx.namespace.Name().String()), tag.Error(err), tag.SourceCluster(h.ClusterMetadata.GetCurrentClusterName()), tag.TargetCluster(rCtx.namespace.ActiveClusterName(rCtx.workflowID)))
+		h.Logger.Error("unable to get HTTP client for forward request", tag.Operation(apiName), tag.WorkflowNamespace(rCtx.namespace.Name().String()), tag.Error(err), tag.SourceCluster(h.ClusterMetadata.GetCurrentClusterName()), tag.TargetCluster(rCtx.namespace.ActiveClusterName(namespace.BusinessID{ID: rCtx.workflowID})))
 		return nexus.NewHandlerErrorf(nexus.HandlerErrorTypeInternal, "internal error")
 	}
 
 	forwardURL, err := url.JoinPath(client.BaseURL(), commonnexus.RouteCompletionCallback.Path(rCtx.namespace.Name().String()))
 	if err != nil {
-		h.Logger.Error("failed to construct forwarding request URL", tag.Operation(apiName), tag.WorkflowNamespace(rCtx.namespace.Name().String()), tag.Error(err), tag.TargetCluster(rCtx.namespace.ActiveClusterName(rCtx.workflowID)))
+		h.Logger.Error("failed to construct forwarding request URL", tag.Operation(apiName), tag.WorkflowNamespace(rCtx.namespace.Name().String()), tag.Error(err), tag.TargetCluster(rCtx.namespace.ActiveClusterName(namespace.BusinessID{ID: rCtx.workflowID})))
 		return nexus.NewHandlerErrorf(nexus.HandlerErrorTypeInternal, "internal error")
 	}
 
@@ -248,7 +248,7 @@ func (h *completionHandler) forwardCompleteOperation(ctx context.Context, r *nex
 			tag.WorkflowNamespace(rCtx.namespace.Name().String()),
 			tag.AttemptStart(time.Now().UTC()),
 			tag.SourceCluster(h.ClusterMetadata.GetCurrentClusterName()),
-			tag.TargetCluster(rCtx.namespace.ActiveClusterName(rCtx.workflowID)),
+			tag.TargetCluster(rCtx.namespace.ActiveClusterName(namespace.BusinessID{ID: rCtx.workflowID})),
 		)
 		if trace := h.HTTPTraceProvider.NewForwardingTrace(traceLogger); trace != nil {
 			ctx = httptrace.WithClientTrace(ctx, trace)
@@ -433,21 +433,21 @@ func (c *requestContext) interceptRequest(ctx context.Context, request *nexusrpc
 		return commonnexus.ConvertGRPCError(err, false)
 	}
 
-	if err := c.NamespaceValidationInterceptor.ValidateState(c.namespace, apiName, c.workflowID); err != nil {
+	if err := c.NamespaceValidationInterceptor.ValidateState(c.namespace, apiName, namespace.BusinessID{ID: c.workflowID}); err != nil {
 		c.outcomeTag = metrics.OutcomeTag("invalid_namespace_state")
 		return commonnexus.ConvertGRPCError(err, false)
 	}
 
 	// Redirect if current cluster is passive for this namespace.
-	if c.namespace.ActiveClusterName(c.workflowID) != c.ClusterMetadata.GetCurrentClusterName() {
+	if c.namespace.ActiveClusterName(namespace.BusinessID{ID: c.workflowID}) != c.ClusterMetadata.GetCurrentClusterName() {
 		if c.shouldForwardRequest(ctx, request.HTTPRequest.Header, c.workflowID) {
 			c.forwarded = true
 			handler, forwardStartTime := c.RedirectionInterceptor.BeforeCall(methodNameForMetrics)
 			c.cleanupFunctions = append(c.cleanupFunctions, func(retErr error) {
-				c.RedirectionInterceptor.AfterCall(handler, forwardStartTime, c.namespace.ActiveClusterName(c.workflowID), c.namespace.Name().String(), retErr)
+				c.RedirectionInterceptor.AfterCall(handler, forwardStartTime, c.namespace.ActiveClusterName(namespace.BusinessID{ID: c.workflowID}), c.namespace.Name().String(), retErr)
 			})
 			// Handler methods should have special logic to forward requests if this method returns a serviceerror.NamespaceNotActive error.
-			return serviceerror.NewNamespaceNotActive(c.namespace.Name().String(), c.ClusterMetadata.GetCurrentClusterName(), c.namespace.ActiveClusterName(c.workflowID))
+			return serviceerror.NewNamespaceNotActive(c.namespace.Name().String(), c.ClusterMetadata.GetCurrentClusterName(), c.namespace.ActiveClusterName(namespace.BusinessID{ID: c.workflowID}))
 		}
 		c.metricsHandler = c.metricsHandler.WithTags(metrics.OutcomeTag("namespace_inactive_forwarding_disabled"))
 		return nexus.NewHandlerErrorf(nexus.HandlerErrorTypeUnavailable, "cluster inactive")

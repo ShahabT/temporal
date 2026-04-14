@@ -77,7 +77,7 @@ func TestCommandProtocolMessage(t *testing.T) {
 		out.ms = historyi.NewMockMutableState(ctrl)
 		out.ms.EXPECT().VisitUpdates(gomock.Any()).AnyTimes()
 		out.ms.EXPECT().GetNamespaceEntry().Return(tests.LocalNamespaceEntry).AnyTimes()
-		out.ms.EXPECT().GetCurrentVersion().Return(tests.LocalNamespaceEntry.FailoverVersion(tests.WorkflowID)).AnyTimes()
+		out.ms.EXPECT().GetCurrentVersion().Return(tests.LocalNamespaceEntry.FailoverVersion(namespace.BusinessID{ID: tests.WorkflowID})).AnyTimes()
 
 		dcClient := dynamicconfig.StaticClient(nil)
 		if opts.chasmEnabled {

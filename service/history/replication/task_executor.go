@@ -380,7 +380,7 @@ func (e *taskExecutorImpl) filterTask(
 
 	shouldProcessTask := false
 FilterLoop:
-	for _, targetCluster := range namespaceEntry.ClusterNames(workflowID) {
+	for _, targetCluster := range namespaceEntry.ClusterNames(namespace.BusinessID{ID: workflowID}) {
 		if e.currentCluster == targetCluster {
 			shouldProcessTask = true
 			break FilterLoop

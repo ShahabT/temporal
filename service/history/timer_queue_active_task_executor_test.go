@@ -97,7 +97,7 @@ func (s *timerQueueActiveTaskExecutorSuite) SetupTest() {
 
 	s.namespaceID = tests.NamespaceID
 	s.namespaceEntry = tests.GlobalNamespaceEntry
-	s.version = s.namespaceEntry.FailoverVersion(namespace.EmptyBusinessID)
+	s.version = s.namespaceEntry.FailoverVersion(namespace.BusinessID{})
 	s.now = time.Now().UTC()
 	s.timeSource = clock.NewEventTimeSource().Update(s.now)
 

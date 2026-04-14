@@ -265,9 +265,9 @@ func (v *CommandAttrValidator) ValidateCancelExternalWorkflowExecutionAttributes
 
 	if err := v.validateCrossNamespaceCall(
 		namespaceID,
-		workflowID,
+		namespace.BusinessID{ID: workflowID},
 		targetNamespaceID,
-		targetWorkflowID,
+		namespace.BusinessID{ID: targetWorkflowID},
 	); err != nil {
 		return failedCause, err
 	}
@@ -313,9 +313,9 @@ func (v *CommandAttrValidator) ValidateSignalExternalWorkflowExecutionAttributes
 
 	if err := v.validateCrossNamespaceCall(
 		namespaceID,
-		workflowID,
+		namespace.BusinessID{ID: workflowID},
 		targetNamespaceID,
-		targetWorkflowID,
+		namespace.BusinessID{ID: targetWorkflowID},
 	); err != nil {
 		return failedCause, err
 	}
@@ -469,9 +469,9 @@ func (v *CommandAttrValidator) ValidateStartChildExecutionAttributes(
 
 	if err := v.validateCrossNamespaceCall(
 		namespaceID,
-		parentInfo.WorkflowId,
+		namespace.BusinessID{ID: parentInfo.WorkflowId},
 		targetNamespaceID,
-		wfID,
+		namespace.BusinessID{ID: wfID},
 	); err != nil {
 		return failedCause, err
 	}
@@ -580,9 +580,9 @@ func (v *CommandAttrValidator) validateWorkflowRetryPolicy(
 
 func (v *CommandAttrValidator) validateCrossNamespaceCall(
 	namespaceID namespace.ID,
-	businessID string,
+	businessID namespace.BusinessID,
 	targetNamespaceID namespace.ID,
-	targetBusinessID string,
+	targetBusinessID namespace.BusinessID,
 ) error {
 
 	// same name, no check needed

@@ -93,7 +93,7 @@ func (s *visibilityQueueTaskExecutorSuite) SetupTest() {
 
 	s.namespaceID = tests.NamespaceID
 	s.namespace = tests.Namespace
-	s.version = tests.GlobalNamespaceEntry.FailoverVersion(namespace.EmptyBusinessID)
+	s.version = tests.GlobalNamespaceEntry.FailoverVersion(namespace.BusinessID{})
 	s.now = time.Now().UTC()
 	s.timeSource = clock.NewEventTimeSource().Update(s.now)
 

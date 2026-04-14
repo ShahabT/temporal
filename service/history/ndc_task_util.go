@@ -327,5 +327,5 @@ func getNamespaceTagAndReplicationStateByID(
 		return metrics.NamespaceUnknownTag(), enumspb.REPLICATION_STATE_UNSPECIFIED
 	}
 
-	return metrics.NamespaceTag(namespaceName.Name().String()), namespaceName.ReplicationState(businessID)
+	return metrics.NamespaceTag(namespaceName.Name().String()), namespaceName.ReplicationState(namespace.BusinessID{ID: businessID})
 }

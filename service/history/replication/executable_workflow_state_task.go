@@ -85,7 +85,7 @@ func (e *ExecutableWorkflowStateTask) Execute() error {
 	namespaceName, apply, err := e.GetNamespaceInfo(headers.SetCallerInfo(
 		context.Background(),
 		callerInfo,
-	), e.NamespaceID, e.WorkflowID)
+	), e.NamespaceID, namespace.BusinessID{ID: e.WorkflowID})
 	if err != nil {
 		return err
 	} else if !apply {
@@ -136,7 +136,7 @@ func (e *ExecutableWorkflowStateTask) HandleErr(err error) error {
 		namespaceName, _, nsError := e.GetNamespaceInfo(headers.SetCallerInfo(
 			context.Background(),
 			callerInfo,
-		), e.NamespaceID, e.WorkflowID)
+		), e.NamespaceID, namespace.BusinessID{ID: e.WorkflowID})
 		if nsError != nil {
 			return err
 		}
@@ -167,7 +167,7 @@ func (e *ExecutableWorkflowStateTask) HandleErr(err error) error {
 		namespaceName, _, nsError := e.GetNamespaceInfo(headers.SetCallerInfo(
 			context.Background(),
 			callerInfo,
-		), e.NamespaceID, e.WorkflowID)
+		), e.NamespaceID, namespace.BusinessID{ID: e.WorkflowID})
 		if nsError != nil {
 			return err
 		}
